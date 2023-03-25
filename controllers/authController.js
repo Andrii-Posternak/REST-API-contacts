@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 const User = require("../models/user");
 const { RequestError } = require("../helpers");
 const { registerSchema, loginSchema } = require("../schemas/auth");
@@ -19,10 +20,12 @@ const register = async (req, res, next) => {
       throw RequestError(409, "Email in use");
     }
     const hashedPassword = await bcrypt.hash(password, 10);
+    const avatarURL = gravatar.url(email);
     const user = await User.create({
       email,
       password: hashedPassword,
       subscription,
+      avatarURL,
     });
     res.status(201).json({
       user: {
@@ -86,7 +89,6 @@ const getCurrentUser = async (req, res, next) => {
   try {
     const { _id } = req.user;
     const existingUser = await User.findById(_id);
-    console.log("existingUser -", existingUser);
     if (!existingUser) {
       throw RequestError(401, "Not authorized");
     }

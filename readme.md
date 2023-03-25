@@ -1,31 +1,333 @@
-## GoIT Node.js Course Template Homework
+# REST-API-phonebook
 
-Виконайте форк цього репозиторію для виконання домашніх завдань (2-6)
-Форк створить репозиторій на вашому http://github.com
+This REST API can be used to manage the phone book.
 
-Додайте ментора до колаборації
+## Created with
 
-Для кожної домашньої роботи створюйте свою гілку.
+:white_check_mark: Node.js  
+:white_check_mark: Mongo DB  
+:white_check_mark: Express
 
-- hw02
-- hw03
-- hw04
-- hw05
-- hw06
+## Usage
 
-Кожна нова гілка для др повинна робитися з master
+This REST API uses these endpoints:
 
-Після того, як ви закінчили виконувати домашнє завдання у своїй гілці, необхідно зробити пулл-реквест (PR). Потім додати ментора для рев'ю коду. Тільки після того, як ментор заапрувить PR, ви можете виконати мердж гілки з домашнім завданням у майстер.
+- **POST** `/api/auth/register` - create a new user
+- **POST** `/api/auth/login` - log in in the application
+- **GET** `/api/auth/logout` - log out from the application
+- **GET** `/api/auth/current` - get information about the current user
 
-Уважно читайте коментарі ментора. Виправте зауваження та зробіть коміт у гілці з домашнім завданням. Зміни підтягнуться у PR автоматично після того, як ви відправите коміт з виправленнями на github
-Після виправлення знову додайте ментора на рев'ю коду.
+- **GET** `/api/contacts` - get all user contacts
+- **POST** `/api/contacts` - create a new contact
+- **DELETE** `/api/contacts:contactId` - delete contact
+- **PUT** `/api/contacts:contactId` - update an existing contact
 
-- При здачі домашньої роботи є посилання на PR
-- JS-код чистий та зрозумілий, для форматування використовується Prettier
+### Create a new user
 
-### Команди:
+**Request:**  
+Content-Type: application/json  
+Request body:
 
-- `npm start` &mdash; старт сервера в режимі production
-- `npm run start:dev` &mdash; старт сервера в режимі розробки (development)
-- `npm run lint` &mdash; запустити виконання перевірки коду з eslint, необхідно виконувати перед кожним PR та виправляти всі помилки лінтера
-- `npm lint:fix` &mdash; та ж перевірка лінтера, але з автоматичними виправленнями простих помилок
+```
+{
+    "name": "example name",
+    "email": "example@example.com",
+    "password": "example password"
+}
+```
+
+**Response:**  
+Status: 201 Created  
+Response body:
+
+```
+{
+    "user": {
+        "name": "example name",
+        "email": "example@example.com"
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "error message"
+}`
+
+Status: 409 Conflict  
+Response body:
+`{
+    "message": "Email in use"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Log in in the application
+
+**Request:**  
+Content-Type: application/json  
+Request body:
+
+```
+{
+    "email": "example@example.com",
+    "password": "example password"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "token": "example token",
+    "user": {
+        "name": "example name",
+        "email": "example@example.com"
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "error message"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Email or password is wrong"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Log out from the application
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 204 No Content
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get information about the current user
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "name": "example name",
+    "email": "example@example.com"
+}
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get all user contacts
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "number": "example number"
+        "owner": {
+            "_id": "641c6b08090d5d316b23594a",
+            "name": "Annie Copeland",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Create a new contact
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Request body:
+
+```
+{
+    "name": "example name",
+    "number": "example number"
+}
+```
+
+**Response:**  
+Status: 201 Created  
+Response body:
+
+```
+{
+    "_id": "example contact id",
+    "name": "example name",
+    "number": "example number",
+    "owner": {
+        "_id": "641c6b08090d5d316b23594a",
+        "name": "Annie Copeland",
+        "email": "example@example.com"
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing required name field"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Delete contact
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId
+
+**Response:**  
+Status: 200 OK  
+Response body:
+`{
+    "message": "Contact deleted"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update an existing contact
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId  
+Request body:
+
+```
+{
+    "name": "example name",
+    "number": "example number"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id",
+    "name": "example name",
+    "number": "example number",
+    "owner": {
+        "_id": "641c6b08090d5d316b23594a",
+        "name": "Annie Copeland",
+        "email": "example@example.com"
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing required name field"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
