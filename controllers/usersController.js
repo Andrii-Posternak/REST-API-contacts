@@ -2,6 +2,33 @@ const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
 const User = require("../models/user");
+const { RequestError } = require("../helpers");
+
+const updateSubscription = async (req, res, next) => {
+  try {
+    const subscriptionType = ["starter", "pro", "business"];
+    const { subscription: newSubscription } = req.body;
+    const { _id, subscription } = req.user;
+    if (!subscriptionType.includes(newSubscription)) {
+      throw RequestError(400, "Invalid subscription type");
+    }
+    if (newSubscription === subscription) {
+      throw RequestError(
+        400,
+        `Your subscription is already '${newSubscription}'`
+      );
+    }
+    console.log("виконуюмо цей код");
+    await User.findByIdAndUpdate(_id, {
+      subscription: newSubscription,
+    });
+    res.json({
+      message: `Your subscription has been changed to '${newSubscription}'`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const updateAvatar = async (req, res, next) => {
   try {
@@ -29,4 +56,4 @@ const updateAvatar = async (req, res, next) => {
   }
 };
 
-module.exports = { updateAvatar };
+module.exports = { updateAvatar, updateSubscription };

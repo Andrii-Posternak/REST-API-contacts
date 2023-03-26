@@ -1,11 +1,31 @@
 const Contact = require("../models/contact");
 const { RequestError } = require("../helpers");
-const { schema, schemaFavorite } = require("../schemas");
+const { schema, schemaFavorite, schemaQuery } = require("../schemas");
 
 const getContacts = async (req, res, next) => {
   try {
+    let result = [];
     const { id: owner } = req.user;
-    const result = await Contact.find({ owner });
+    const contacts = await Contact.find({ owner });
+    result = [...contacts];
+
+    const { error } = schemaQuery.validate(req.query);
+    if (error) {
+      throw RequestError(400, "Invalid query data");
+    } else {
+      const { favorite, page, limit } = req.query;
+      if (favorite === "true") {
+        const filteredByFavorite = result.filter(
+          (contact) => contact.favorite === true
+        );
+        result = [...filteredByFavorite];
+      }
+      if (page && limit) {
+        const pagination = result.slice((page - 1) * limit, page * limit);
+        result = [...pagination];
+      }
+    }
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: "Server error" });

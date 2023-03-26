@@ -4,6 +4,8 @@ const { auth, upload } = require("../../middlewares");
 
 const router = express.Router();
 
+router.patch("/", auth, usersController.updateSubscription);
+
 router.patch(
   "/avatars",
   auth,

@@ -10,4 +10,10 @@ const schemaFavorite = Joi.object({
   favorite: Joi.boolean().required(),
 });
 
-module.exports = { schema, schemaFavorite };
+const schemaQuery = Joi.object({
+  favorite: Joi.boolean().valid(true),
+  page: Joi.number().integer().positive(),
+  limit: Joi.number().integer().positive(),
+});
+
+module.exports = { schema, schemaFavorite, schemaQuery };
