@@ -1,31 +1,596 @@
-## GoIT Node.js Course Template Homework
+# REST-API-phonebook
 
-Виконайте форк цього репозиторію для виконання домашніх завдань (2-6)
-Форк створить репозиторій на вашому http://github.com
+This REST API can be used to manage the phone book.
 
-Додайте ментора до колаборації
+## Created with
 
-Для кожної домашньої роботи створюйте свою гілку.
+:white_check_mark: Node.js  
+:white_check_mark: Mongo DB  
+:white_check_mark: Express
 
-- hw02
-- hw03
-- hw04
-- hw05
-- hw06
+## Usage
 
-Кожна нова гілка для др повинна робитися з master
+This REST API uses these endpoints:
 
-Після того, як ви закінчили виконувати домашнє завдання у своїй гілці, необхідно зробити пулл-реквест (PR). Потім додати ментора для рев'ю коду. Тільки після того, як ментор заапрувить PR, ви можете виконати мердж гілки з домашнім завданням у майстер.
+- **POST** `/api/auth/register` - create a new user
+- **POST** `/api/auth/login` - log in in the application
+- **GET** `/api/auth/logout` - log out from the application
+- **GET** `/api/auth/current` - get information about the current user
 
-Уважно читайте коментарі ментора. Виправте зауваження та зробіть коміт у гілці з домашнім завданням. Зміни підтягнуться у PR автоматично після того, як ви відправите коміт з виправленнями на github
-Після виправлення знову додайте ментора на рев'ю коду.
+- **PATCH** `/api/users` - update user's subscription
+- **PATCH** `/api/users/avatars` - update user's avatar
 
-- При здачі домашньої роботи є посилання на PR
-- JS-код чистий та зрозумілий, для форматування використовується Prettier
+- **GET** `/api/contacts` - get all user's contacts
+- **GET** `/api/contacts?favorite=true` - filter contacts by favorites
+- **GET** `/api/contacts?page=1&limit=20` - pagination
+- **GET** `/api/contacts/:contactId` - get user's contact by id
+- **POST** `/api/contacts` - create a new contact
+- **DELETE** `/api/contacts:contactId` - delete contact
+- **PUT** `/api/contacts:contactId` - update an existing contact
+- **PATCH** `/api/contacts:contactId/favorite` - update contact status
 
-### Команди:
+### Create a new user
 
-- `npm start` &mdash; старт сервера в режимі production
-- `npm run start:dev` &mdash; старт сервера в режимі розробки (development)
-- `npm run lint` &mdash; запустити виконання перевірки коду з eslint, необхідно виконувати перед кожним PR та виправляти всі помилки лінтера
-- `npm lint:fix` &mdash; та ж перевірка лінтера, але з автоматичними виправленнями простих помилок
+**Request:**  
+Content-Type: application/json  
+Request body:
+
+```
+{
+    "email": "example@example.com",
+    "password": "example password"
+}
+```
+
+**Response:**  
+Status: 201 Created  
+Response body:
+
+```
+{
+    "user": {
+        "email": "example@example.com",
+        "subscription": "subscription type",
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "error message"
+}`
+
+Status: 409 Conflict  
+Response body:
+`{
+    "message": "Email in use"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Log in in the application
+
+**Request:**  
+Content-Type: application/json  
+Request body:
+
+```
+{
+    "email": "example@example.com",
+    "password": "example password"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "token": "example token",
+    "user": {
+            "email": "example@example.com",
+            "subscription": "subscription type",
+    }
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "error message"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Email or password is wrong"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Log out from the application
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 204 No Content
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get information about the current user
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "email": "example@example.com",
+    "subscription": "subscription type",
+}
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update user's subscription
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Request body:
+
+```
+{
+    "subscription": "subscription type"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    message: "Your subscription has been changed to 'subscription type'"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Error message"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update user's avatar
+
+**Request:**  
+Content-Type: multipart/form-data  
+Headers - Authorization: "Bearer {Token}"  
+Request body: downloaded file
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "avatarURL": "link to file"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "File is not selected"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get all user's contacts
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "contact status",
+        "owner": {
+            "_id": "example owner id",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Filter contacts by favorites
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+Query params - favorite=true
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "true",
+        "owner": {
+            "_id": "example owner id",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Invalid query data"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Pagination
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+Query params - page=1&limit=20
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "contact status",
+        "owner": {
+            "_id": "example owner id",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Invalid query data"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get user's contact by id
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Create a new contact
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Request body:
+
+```
+{
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number"
+}
+```
+
+**Response:**  
+Status: 201 Created  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing required name field"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Delete contact
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId
+
+**Response:**  
+Status: 200 OK  
+Response body:
+`{
+    "message": "Contact deleted"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update an existing contact
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId  
+Request body:
+
+```
+{
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing required name field"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update contact status
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId  
+Request body:
+
+```
+{
+    "favorite": "contact status"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing field favorite"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`

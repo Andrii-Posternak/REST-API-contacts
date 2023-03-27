@@ -1,11 +1,34 @@
 const Contact = require("../models/contact");
 const { RequestError } = require("../helpers");
-const { schema, schemaFavorite } = require("../schemas");
+const { schema, schemaFavorite, schemaQuery } = require("../schemas");
 
 const getContacts = async (req, res, next) => {
   try {
+    let result = [];
     const { id: owner } = req.user;
-    const result = await Contact.find({ owner });
+    const contacts = await Contact.find(
+      { owner },
+      "-createdAt -updatedAt"
+    ).populate("owner", "name email");
+    result = [...contacts];
+
+    const { error } = schemaQuery.validate(req.query);
+    if (error) {
+      throw RequestError(400, "Invalid query data");
+    } else {
+      const { favorite, page, limit } = req.query;
+      if (favorite === "true") {
+        const filteredByFavorite = result.filter(
+          (contact) => contact.favorite === true
+        );
+        result = [...filteredByFavorite];
+      }
+      if (page && limit) {
+        const pagination = result.slice((page - 1) * limit, page * limit);
+        result = [...pagination];
+      }
+    }
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -32,7 +55,7 @@ const addContact = async (req, res, next) => {
   try {
     const { error } = schema.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing required name field");
+      throw RequestError(400, "Missing required name field");
     }
     const { id: owner } = req.user;
     const result = await Contact.create({ ...req.body, owner });
@@ -52,7 +75,7 @@ const removeContact = async (req, res, next) => {
     if (!result) {
       throw RequestError(404, "Not found");
     }
-    res.json({ message: "contact deleted" });
+    res.json({ message: "Contact deleted" });
   } catch (error) {
     next(error);
   }
@@ -88,7 +111,7 @@ const updateStatusContact = async (req, res, next) => {
   try {
     const { error } = schemaFavorite.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing field favorite");
+      throw RequestError(400, "Missing field favorite");
     }
     const { contactId } = req.params;
     const { id: owner } = req.user;
