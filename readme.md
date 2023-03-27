@@ -17,10 +17,17 @@ This REST API uses these endpoints:
 - **GET** `/api/auth/logout` - log out from the application
 - **GET** `/api/auth/current` - get information about the current user
 
-- **GET** `/api/contacts` - get all user contacts
+- **PATCH** `/api/users` - update user's subscription
+- **PATCH** `/api/users/avatars` - update user's avatar
+
+- **GET** `/api/contacts` - get all user's contacts
+- **GET** `/api/contacts?favorite=true` - filter contacts by favorites
+- **GET** `/api/contacts?page=1&limit=20` - pagination
+- **GET** `/api/contacts/:contactId` - get user's contact by id
 - **POST** `/api/contacts` - create a new contact
 - **DELETE** `/api/contacts:contactId` - delete contact
 - **PUT** `/api/contacts:contactId` - update an existing contact
+- **PATCH** `/api/contacts:contactId/favorite` - update contact status
 
 ### Create a new user
 
@@ -30,7 +37,6 @@ Request body:
 
 ```
 {
-    "name": "example name",
     "email": "example@example.com",
     "password": "example password"
 }
@@ -43,8 +49,8 @@ Response body:
 ```
 {
     "user": {
-        "name": "example name",
-        "email": "example@example.com"
+        "email": "example@example.com",
+        "subscription": "subscription type",
     }
 }
 ```
@@ -88,8 +94,8 @@ Response body:
 {
     "token": "example token",
     "user": {
-        "name": "example name",
-        "email": "example@example.com"
+            "email": "example@example.com",
+            "subscription": "subscription type",
     }
 }
 ```
@@ -143,8 +149,8 @@ Response body:
 
 ```
 {
-    "name": "example name",
-    "email": "example@example.com"
+    "email": "example@example.com",
+    "subscription": "subscription type",
 }
 ```
 
@@ -160,7 +166,83 @@ Response body:
     "message": "Server error"
 }`
 
-### Get all user contacts
+### Update user's subscription
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Request body:
+
+```
+{
+    "subscription": "subscription type"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    message: "Your subscription has been changed to 'subscription type'"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Error message"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update user's avatar
+
+**Request:**  
+Content-Type: multipart/form-data  
+Headers - Authorization: "Bearer {Token}"  
+Request body: downloaded file
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "avatarURL": "link to file"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "File is not selected"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get all user's contacts
 
 **Request:**  
 Headers - Authorization: "Bearer {Token}"
@@ -174,14 +256,138 @@ Response body:
     {
         "_id": "example contact id"
         "name": "example name",
-        "number": "example number"
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "contact status",
         "owner": {
-            "_id": "641c6b08090d5d316b23594a",
-            "name": "Annie Copeland",
+            "_id": "example owner id",
             "email": "example@example.com"
         }
     }
 ]
+```
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Filter contacts by favorites
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+Query params - favorite=true
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "true",
+        "owner": {
+            "_id": "example owner id",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Invalid query data"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Pagination
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"
+Query params - page=1&limit=20
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+[
+    {
+        "_id": "example contact id"
+        "name": "example name",
+        "email": "example@example.com",
+        "phone": "example number",
+        "favorite": "contact status",
+        "owner": {
+            "_id": "example owner id",
+            "email": "example@example.com"
+        }
+    }
+]
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Invalid query data"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Get user's contact by id
+
+**Request:**  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
 ```
 
 Status: 401 Unauthorized  
@@ -206,7 +412,8 @@ Request body:
 ```
 {
     "name": "example name",
-    "number": "example number"
+    "email": "example@example.com",
+    "phone": "example number"
 }
 ```
 
@@ -216,14 +423,14 @@ Response body:
 
 ```
 {
-    "_id": "example contact id",
+    "_id": "example contact id"
     "name": "example name",
-    "number": "example number",
-    "owner": {
-        "_id": "641c6b08090d5d316b23594a",
-        "name": "Annie Copeland",
-        "email": "example@example.com"
-    }
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
 }
 ```
 
@@ -287,7 +494,8 @@ Request body:
 ```
 {
     "name": "example name",
-    "number": "example number"
+    "email": "example@example.com",
+    "phone": "example number"
 }
 ```
 
@@ -297,14 +505,14 @@ Response body:
 
 ```
 {
-    "_id": "example contact id",
+    "_id": "example contact id"
     "name": "example name",
-    "number": "example number",
-    "owner": {
-        "_id": "641c6b08090d5d316b23594a",
-        "name": "Annie Copeland",
-        "email": "example@example.com"
-    }
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
 }
 ```
 
@@ -312,6 +520,61 @@ Status: 400 Bad Request
 Response body:
 `{
     "message": "Missing required name field"
+}`
+
+Status: 401 Unauthorized  
+Response body:
+`{
+    "message": "Not authorized"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "Not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Update contact status
+
+**Request:**  
+Content-Type: application/json  
+Headers - Authorization: "Bearer {Token}"  
+Path params - contactId  
+Request body:
+
+```
+{
+    "favorite": "contact status"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+
+```
+{
+    "_id": "example contact id"
+    "name": "example name",
+    "email": "example@example.com",
+    "phone": "example number",
+    "favorite": "contact status",
+    "owner": "example owner id",
+    "createdAt": "date of creation",
+    "updatedAt": "update date"
+}
+```
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "Missing field favorite"
 }`
 
 Status: 401 Unauthorized  

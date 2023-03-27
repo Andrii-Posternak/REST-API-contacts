@@ -18,7 +18,6 @@ const updateSubscription = async (req, res, next) => {
         `Your subscription is already '${newSubscription}'`
       );
     }
-    console.log("виконуюмо цей код");
     await User.findByIdAndUpdate(_id, {
       subscription: newSubscription,
     });
@@ -32,6 +31,10 @@ const updateSubscription = async (req, res, next) => {
 
 const updateAvatar = async (req, res, next) => {
   try {
+    if (!req.file) {
+      console.log("this code");
+      throw RequestError(400, "File is not selected");
+    }
     const { _id } = req.user;
     const { path: tempDir, originalname } = req.file;
     const [extention] = originalname.split(".").reverse();
@@ -51,7 +54,9 @@ const updateAvatar = async (req, res, next) => {
     await User.findByIdAndUpdate(_id, { avatarURL });
     res.json({ avatarURL });
   } catch (error) {
-    await fs.unlink(req.file.path);
+    if (req.file) {
+      await fs.unlink(req.file.path);
+    }
     next(error);
   }
 };

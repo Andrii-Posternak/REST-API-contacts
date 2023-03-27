@@ -12,7 +12,7 @@ const register = async (req, res, next) => {
   try {
     const { error } = registerSchema.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing required name field");
+      throw RequestError(400, error.message);
     }
     const { email, password, subscription } = req.body;
     const existingUser = await User.findOne({ email });
@@ -42,7 +42,7 @@ const login = async (req, res, next) => {
   try {
     const { error } = loginSchema.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing required name field");
+      throw RequestError(400, error.message);
     }
     const { email, password } = req.body;
     const existingUser = await User.findOne({ email });

@@ -6,7 +6,10 @@ const getContacts = async (req, res, next) => {
   try {
     let result = [];
     const { id: owner } = req.user;
-    const contacts = await Contact.find({ owner });
+    const contacts = await Contact.find(
+      { owner },
+      "-createdAt -updatedAt"
+    ).populate("owner", "name email");
     result = [...contacts];
 
     const { error } = schemaQuery.validate(req.query);
@@ -52,7 +55,7 @@ const addContact = async (req, res, next) => {
   try {
     const { error } = schema.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing required name field");
+      throw RequestError(400, "Missing required name field");
     }
     const { id: owner } = req.user;
     const result = await Contact.create({ ...req.body, owner });
@@ -72,7 +75,7 @@ const removeContact = async (req, res, next) => {
     if (!result) {
       throw RequestError(404, "Not found");
     }
-    res.json({ message: "contact deleted" });
+    res.json({ message: "Contact deleted" });
   } catch (error) {
     next(error);
   }
@@ -108,7 +111,7 @@ const updateStatusContact = async (req, res, next) => {
   try {
     const { error } = schemaFavorite.validate(req.body);
     if (error) {
-      throw RequestError(400, "missing field favorite");
+      throw RequestError(400, "Missing field favorite");
     }
     const { contactId } = req.params;
     const { id: owner } = req.user;
