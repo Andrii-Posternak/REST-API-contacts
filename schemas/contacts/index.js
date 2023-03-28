@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const schema = Joi.object({
+const schemaContact = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().required(),
   phone: Joi.string().required(),
@@ -16,4 +16,4 @@ const schemaQuery = Joi.object({
   limit: Joi.number().integer().positive(),
 });
 
-module.exports = { schema, schemaFavorite, schemaQuery };
+module.exports = { schemaContact, schemaFavorite, schemaQuery };
