@@ -82,7 +82,7 @@ const updateAvatar = async (req, res, next) => {
 const verification = async (req, res, next) => {
   try {
     const { verificationToken } = req.params;
-    const existingUser = await User.findOne(verificationToken);
+    const existingUser = await User.findOne({ verificationToken });
     if (!existingUser) {
       throw RequestError(404, "User not found");
     }
@@ -114,8 +114,7 @@ const reVerification = async (req, res, next) => {
     const msg = {
       to: email,
       subject: "Verify your email",
-      text: "This email has been resent because your account was not verified. Follow the link to verify your email",
-      html: `<a href="http://localhost:${PORT}/api/users/verify/:${existingUser.verificationToken}" target="_blank">Verify</a>`,
+      html: `<p>This email has been resent because your account was not verified. Follow the <a href="http://localhost:${PORT}/api/users/verify/:${existingUser.verificationToken}" target="_blank">link</a> to verify your email</p>`,
     };
     await sendEmail(msg);
     res.json({

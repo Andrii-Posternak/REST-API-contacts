@@ -34,8 +34,7 @@ const register = async (req, res, next) => {
     const msg = {
       to: email,
       subject: "Verify your email",
-      text: "Follow the link to verify your email",
-      html: `<a href="http://localhost:${PORT}/api/users/verify/:${verificationToken}" target="_blank">Verify</a>`,
+      html: `<p>Follow the <a href="http://localhost:${PORT}/api/users/verify/:${verificationToken}" target="_blank">link</a> to verify your email</p>`,
     };
     await sendEmail(msg);
 
