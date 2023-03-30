@@ -2,7 +2,26 @@ const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
 const User = require("../models/user");
-const { RequestError } = require("../helpers");
+const { RequestError, sendEmail } = require("../helpers");
+require("dotenv").config();
+
+const { SENDGRID_HOST } = process.env;
+
+const getCurrentUser = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const existingUser = await User.findById(_id);
+    if (!existingUser) {
+      throw RequestError(401, "Not authorized");
+    }
+    res.json({
+      email: existingUser.email,
+      subscription: existingUser.subscription,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const updateSubscription = async (req, res, next) => {
   try {
@@ -32,7 +51,6 @@ const updateSubscription = async (req, res, next) => {
 const updateAvatar = async (req, res, next) => {
   try {
     if (!req.file) {
-      console.log("this code");
       throw RequestError(400, "File is not selected");
     }
     const { _id } = req.user;
@@ -61,4 +79,56 @@ const updateAvatar = async (req, res, next) => {
   }
 };
 
-module.exports = { updateAvatar, updateSubscription };
+const verification = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const existingUser = await User.findOne({ verificationToken });
+    if (!existingUser) {
+      throw RequestError(404, "User not found");
+    }
+    await User.findByIdAndUpdate(existingUser._id, {
+      verificationToken: null,
+      verify: true,
+    });
+    res.json({
+      message: "Verification successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const reVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      throw RequestError(400, "Missing required field email");
+    }
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      throw RequestError(404, "User not found");
+    }
+    if (existingUser.verify) {
+      throw RequestError(400, "Verification has already been passed");
+    }
+    const msg = {
+      to: email,
+      subject: "Verify your email",
+      html: `<p>This email has been resent because your account was not verified. Follow the <a href="${SENDGRID_HOST}/api/users/verify/${existingUser.verificationToken}" target="_blank">link</a> to verify your email</p>`,
+    };
+    await sendEmail(msg);
+    res.json({
+      message: "Verification email sent",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getCurrentUser,
+  updateAvatar,
+  updateSubscription,
+  verification,
+  reVerification,
+};

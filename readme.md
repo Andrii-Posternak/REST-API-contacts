@@ -15,10 +15,12 @@ This REST API uses these endpoints:
 - **POST** `/api/auth/register` - create a new user
 - **POST** `/api/auth/login` - log in in the application
 - **GET** `/api/auth/logout` - log out from the application
-- **GET** `/api/auth/current` - get information about the current user
 
+- **GET** `/api/users/current` - get information about the current user
 - **PATCH** `/api/users` - update user's subscription
 - **PATCH** `/api/users/avatars` - update user's avatar
+- **GET** `/api/users/verify/:verificationToken` - confirm email
+- **POST** `/api/users/verify` - reconfirm email
 
 - **GET** `/api/contacts` - get all user's contacts
 - **GET** `/api/contacts?favorite=true` - filter contacts by favorites
@@ -192,7 +194,7 @@ Response body:
 Status: 400 Bad Request  
 Response body:
 `{
-    "message": "Error message"
+    "message": "error message"
 }`
 
 Status: 401 Unauthorized  
@@ -234,6 +236,67 @@ Status: 401 Unauthorized
 Response body:
 `{
     "message": "Not authorized"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Confirm email
+
+**Request:**  
+Path params - contactId
+
+**Response:**  
+Status: 200 OK  
+Response body:
+`{
+    "message": "Verification successful"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "User not found"
+}`
+
+Status: 500 Internal Server Error  
+Response body:
+`{
+    "message": "Server error"
+}`
+
+### Reconfirm email
+
+**Request:**  
+Content-Type: application/json  
+Request body:
+
+```
+{
+    "email": "example@example.com"
+}
+```
+
+**Response:**  
+Status: 200 OK  
+Response body:
+`{
+    "message": "Verification email sent"
+}`
+
+Status: 400 Bad Request  
+Response body:
+`{
+    "message": "error message"
+}`
+
+Status: 404 Not found  
+Response body:
+`{
+    "message": "User not found"
 }`
 
 Status: 500 Internal Server Error  

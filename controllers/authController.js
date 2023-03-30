@@ -1,12 +1,13 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
+const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
-const { RequestError } = require("../helpers");
+const { RequestError, sendEmail } = require("../helpers");
 const { registerSchema, loginSchema } = require("../schemas/auth");
 require("dotenv").config();
 
-const { TOKEN_KEY } = process.env;
+const { SENDGRID_HOST, TOKEN_KEY } = process.env;
 
 const register = async (req, res, next) => {
   try {
@@ -21,12 +22,22 @@ const register = async (req, res, next) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const avatarURL = gravatar.url(email);
+    const verificationToken = uuidv4();
     const user = await User.create({
       email,
       password: hashedPassword,
       subscription,
       avatarURL,
+      verificationToken,
     });
+
+    const msg = {
+      to: email,
+      subject: "Verify your email",
+      html: `<p>Follow the <a href="${SENDGRID_HOST}/api/users/verify/${verificationToken}" target="_blank">link</a> to verify your email</p>`,
+    };
+    await sendEmail(msg);
+
     res.status(201).json({
       user: {
         email: user.email,
@@ -53,6 +64,9 @@ const login = async (req, res, next) => {
       password,
       existingUser.password
     );
+    if (!existingUser.verify) {
+      throw RequestError(401, "Email is not verified");
+    }
     if (!isPasswordValid) {
       throw RequestError(401, "Email or password is wrong");
     }
@@ -85,20 +99,4 @@ const logout = async (req, res, next) => {
   }
 };
 
-const getCurrentUser = async (req, res, next) => {
-  try {
-    const { _id } = req.user;
-    const existingUser = await User.findById(_id);
-    if (!existingUser) {
-      throw RequestError(401, "Not authorized");
-    }
-    res.json({
-      email: existingUser.email,
-      subscription: existingUser.subscription,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = { register, login, logout, getCurrentUser };
+module.exports = { register, login, logout };
