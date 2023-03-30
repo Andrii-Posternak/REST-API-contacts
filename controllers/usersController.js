@@ -114,7 +114,7 @@ const reVerification = async (req, res, next) => {
     const msg = {
       to: email,
       subject: "Verify your email",
-      html: `<p>This email has been resent because your account was not verified. Follow the <a href="${SENDGRID_HOST}/api/users/verify/:${existingUser.verificationToken}" target="_blank">link</a> to verify your email</p>`,
+      html: `<p>This email has been resent because your account was not verified. Follow the <a href="${SENDGRID_HOST}/api/users/verify/${existingUser.verificationToken}" target="_blank">link</a> to verify your email</p>`,
     };
     await sendEmail(msg);
     res.json({

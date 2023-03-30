@@ -34,7 +34,7 @@ const register = async (req, res, next) => {
     const msg = {
       to: email,
       subject: "Verify your email",
-      html: `<p>Follow the <a href="${SENDGRID_HOST}/api/users/verify/:${verificationToken}" target="_blank">link</a> to verify your email</p>`,
+      html: `<p>Follow the <a href="${SENDGRID_HOST}/api/users/verify/${verificationToken}" target="_blank">link</a> to verify your email</p>`,
     };
     await sendEmail(msg);
 
