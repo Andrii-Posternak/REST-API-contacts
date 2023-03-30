@@ -7,7 +7,7 @@ const { RequestError, sendEmail } = require("../helpers");
 const { registerSchema, loginSchema } = require("../schemas/auth");
 require("dotenv").config();
 
-const { PORT, TOKEN_KEY } = process.env;
+const { SENDGRID_HOST, TOKEN_KEY } = process.env;
 
 const register = async (req, res, next) => {
   try {
@@ -34,7 +34,7 @@ const register = async (req, res, next) => {
     const msg = {
       to: email,
       subject: "Verify your email",
-      html: `<p>Follow the <a href="http://localhost:${PORT}/api/users/verify/:${verificationToken}" target="_blank">link</a> to verify your email</p>`,
+      html: `<p>Follow the <a href="${SENDGRID_HOST}/api/users/verify/:${verificationToken}" target="_blank">link</a> to verify your email</p>`,
     };
     await sendEmail(msg);
 
